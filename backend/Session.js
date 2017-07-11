@@ -45,7 +45,13 @@ export default class Session {
         if(!sessions[id]) {
             throw new Error("Session not found");
         }
-        return sessions[id];
+        let sess = sessions[id];
+        if(Date.now() - sess.create_time > 300000) {
+            sess.destroy();
+            throw new Error("Session expired");
+        }
+
+        return sess;
     }
 }
 

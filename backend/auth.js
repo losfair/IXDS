@@ -92,3 +92,20 @@ export function login_verify(req, resp) {
         msg: "Verification failed"
     });
 }
+
+export function require_authorized(req, resp, next) {
+    try {
+        let token = req.body.token;
+        let sess = Session.get(token).require_authorized();
+        req.session = sess;
+    } catch(e) {
+        console.log("[WARNING] Unauthorized request to " + req.url + " blocked");
+        return resp.json({
+            err: -1,
+            msg: "" + e
+        });
+    }
+
+    console.log("Authorized request (user id: " + req.session.user_id + ") to: " + req.url);
+    next();
+}

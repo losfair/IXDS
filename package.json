@@ -14,10 +14,13 @@
     "babel-preset-stage-3": "^6.24.1",
     "babel-runtime": "^6.23.0",
     "body-parser": "^1.17.2",
+    "child-process-promise": "^2.2.1",
     "cookie-parser": "^1.4.3",
     "express": "^4.15.3",
+    "lzma-native": "^3.0.1",
     "request": "^2.81.0",
     "request-promise": "^4.2.1",
+    "tmp": "^0.0.31",
     "u2f": "^0.1.2",
     "u2f-client": "^0.1.0",
     "uuid": "^3.1.0"
