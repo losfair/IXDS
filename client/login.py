@@ -7,10 +7,10 @@ import uuid
 import config
 import urllib.parse
 import os
+import qrcode
 from u2flib_host import u2f, exc
 
 dvc = u2f.list_devices()[0]
-print(dvc)
 
 svc_prefix = sys.argv[1]
 
@@ -21,7 +21,15 @@ params = urllib.parse.urlencode({
 })
 sso_url = "https://oneidentity.me/web/?" + params + "#auth"
 
-print(sso_url)
+sys.stderr.write(sso_url + "\n")
+
+try:
+    qr_img = qrcode.make(sso_url)
+    qr_path = "/tmp/ixds-qr-" + str(uuid.uuid4()) + ".png"
+    qr_img.save(qr_path)
+    subprocess.Popen(["xdg-open", qr_path])
+except:
+    pass
 
 sess_token = None
 while sess_token == None:
@@ -34,8 +42,6 @@ while sess_token == None:
     sess_token = r["token"]
     break
 
-print("Requesting login")
-
 login_req = requests.post(svc_prefix + "/auth/request_login", data = {
     "token": sess_token
 }).json()
@@ -44,7 +50,7 @@ if login_req["err"] != 0:
 
 auth_req = login_req["auth_req"]
 
-print("Touch the button on your U2F key")
+sys.stderr.write("Touch the button on your U2F key\n")
 
 with dvc as dvc_ctx:
     ok = False
@@ -55,8 +61,6 @@ with dvc as dvc_ctx:
             time.sleep(0.1)
             continue
         ok = True
-
-print("Requesting verification")
     
 r = requests.post(svc_prefix + "/auth/login_verify", data = {
     "token": sess_token,
@@ -66,10 +70,10 @@ r = requests.post(svc_prefix + "/auth/login_verify", data = {
 if r["err"] != 0:
     raise Exception(r["msg"])
 
-print("All done")
-print("Token: " + sess_token)
+if os.environ.get("IXDS_LOGIN_MODE") == "shell":
+    os.environ["IXDS_SVC_PREFIX"] = svc_prefix
+    os.environ["IXDS_TOKEN"] = sess_token
 
-os.environ["IXDS_SVC_PREFIX"] = svc_prefix
-os.environ["IXDS_TOKEN"] = sess_token
-
-subprocess.run("/bin/bash", shell = True)
+    subprocess.run("/bin/bash", shell = True)
+else:
+    print(sess_token)

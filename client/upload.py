@@ -15,4 +15,7 @@ r = requests.post(svc_prefix + "/upload", data = base64.b64encode(pkg_data), hea
     "Token": token
 }).json()
 
-print(r)
+if r["err"] != 0:
+    raise Exception(r["msg"])
+
+print(r["upload_id"])
